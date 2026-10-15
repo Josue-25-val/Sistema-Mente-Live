@@ -2,587 +2,389 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Live - Sistema & Mente</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema & Mente - TikTok LIVE</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter and Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        code: ['Fira Code', 'monospace']
+                    },
+                    colors: {
+                        cyberDark: '#090a0f',
+                        cyberPanel: '#121624',
+                        neonCyan: '#00f3ff',
+                        neonPink: '#ff0055',
+                        neonGreen: '#00ff66'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif;
-            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
-
         body {
-            background-color: #070a13;
-            color: #ffffff;
+            background-color: #05070a;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Matrix background canvas */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Contenedor con escala automática para mantener la proporción 9:16 en cualquier pantalla */
-        .scaler-wrapper {
-            width: 1080px;
-            height: 1920px;
-            position: relative;
-            transform-origin: center center;
-            /* Se ajustará automáticamente por JavaScript según tu pantalla */
-        }
-
-        /* Canvas Matrix de Fondo */
-        #matrixCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            display: none;
-        }
-
-        /* Fondo de Palabras Flotantes */
-        #floatingContainer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            z-index: 0;
+            opacity: 0.15;
             pointer-events: none;
-            overflow: hidden;
-            display: none;
         }
-
-        .floating-word {
-            position: absolute;
-            color: #38bdf8;
-            opacity: 0.25;
-            font-weight: 800;
-            font-size: 28px;
-            animation: floatUp 10s linear infinite;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(1920px) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.3; }
-            80% { opacity: 0.3; }
-            100% { transform: translateY(-200px) rotate(15deg); opacity: 0; }
-        }
-
-        /* Estructura Principal */
-        .app-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1080px;
-            height: 1920px;
-            z-index: 10;
-            display: flex;
-            padding: 50px;
-            gap: 30px;
-        }
-
-        /* Columna Izquierda (Contenido y Cajas) */
-        .left-column {
-            width: 680px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Columna Derecha (Área fija para el chat de TikTok) */
-        .right-column {
-            width: 310px;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            border: 4px dashed #38bdf8;
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 25px;
-        }
-
-        .right-column p {
-            color: #38bdf8;
-            font-size: 22px;
-            font-weight: 900;
-            text-shadow: 0 0 10px rgba(56,189,248,0.5);
-        }
-
-        /* Panel de Control Superior (Botones) */
-        .control-panel {
-            background: rgba(15, 23, 42, 0.95);
-            border: 3px solid #38bdf8;
-            border-radius: 20px;
-            padding: 18px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
-        }
-
-        .btn-ctrl {
-            background: #1e293b;
-            color: #ffffff;
-            border: 2px solid #38bdf8;
-            padding: 12px 18px;
-            border-radius: 14px;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-ctrl:hover {
-            background: #38bdf8;
-            color: #000000;
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #38bdf8;
-        }
-
-        /* Encabezado */
-        .header {
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .header h1 {
-            font-size: 44px;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
-            letter-spacing: 1px;
-        }
-
-        .header p {
-            font-size: 24px;
-            color: #cbd5e1;
-            margin-top: 10px;
-            font-weight: 700;
-        }
-
-        /* Cuadrícula de Cajas Interactivas */
-        .grid-boxes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            width: 100%;
-            margin: 20px 0;
-        }
-
-        .fact-box {
-            height: 330px;
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            padding: 25px;
-            text-align: center;
-            border: 5px solid #ffffff;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
-            transition: transform 0.2s ease, filter 0.2s ease;
-        }
-
-        .fact-box:hover {
-            transform: translateY(-5px) scale(1.03);
-            filter: brightness(1.15);
-        }
-
-        /* Colores vivos y seguros para las cajas */
-        .box-1 { background: linear-gradient(135deg, #e11d48, #f43f5e); }
-        .box-2 { background: linear-gradient(135deg, #7c3aed, #a855f7); }
-        .box-3 { background: linear-gradient(135deg, #0284c7, #38bdf8); }
-        .box-4 { background: linear-gradient(135deg, #059669, #34d399); }
-
-        .fact-box .tag {
-            font-size: 16px;
-            font-weight: 900;
-            color: #ffffff;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 6px 16px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .fact-box h3 {
-            font-size: 48px;
-            color: #ffffff;
-            font-weight: 900;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.8);
-        }
-
-        .fact-box span {
-            font-size: 24px;
-            color: #ffffff;
-            margin-top: 12px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: 800;
-        }
-
-        /* Ventana Flotante Mágica (Modal) */
-        .modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1080px;
-            height: 1920px;
-            background: rgba(0, 0, 0, 0.92);
+        /* Glassmorphism panel */
+        .glass-panel {
+            background: rgba(18, 22, 36, 0.75);
             backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
+            border: 1px solid rgba(0, 243, 255, 0.15);
         }
-
-        .modal-overlay.active {
-            display: flex;
+        .glass-card {
+            background: rgba(26, 32, 53, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .modal-card {
-            background: #0f172a;
-            border: 6px solid #38bdf8;
-            width: 900px;
-            padding: 60px;
-            border-radius: 35px;
-            text-align: center;
-            box-shadow: 0 0 70px rgba(56, 189, 248, 0.7);
+        .glass-card:active {
+            transform: scale(0.97);
         }
-
-        .modal-card .category-badge {
-            display: inline-block;
-            background: #38bdf8;
-            color: #000000;
-            font-size: 22px;
-            font-weight: 900;
-            padding: 8px 25px;
-            border-radius: 20px;
-            margin-bottom: 25px;
-            text-transform: uppercase;
+        /* Pulse animation for live badge */
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.95); }
         }
-
-        .modal-card h2 {
-            font-size: 46px;
-            color: #38bdf8;
-            margin-bottom: 25px;
-            font-weight: 900;
-        }
-
-        .modal-card p {
-            font-size: 34px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            font-weight: 700;
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            border-radius: 20px;
-            border-left: 8px solid #38bdf8;
-        }
-
-        .btn-close {
-            background: #38bdf8;
-            color: #000000;
-            border: none;
-            padding: 20px 60px;
-            font-size: 26px;
-            font-weight: 900;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 0 25px rgba(56,189,248,0.5);
-            transition: transform 0.2s;
-        }
-
-        .btn-close:hover {
-            transform: scale(1.05);
-        }
-
-        /* Footer */
-        .footer-live {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.95);
-            padding: 20px 30px;
-            border-radius: 20px;
-            border: 2px solid #38bdf8;
-        }
-
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 900;
-            font-size: 24px;
-            color: #ef4444;
-        }
-
         .live-dot {
-            width: 18px;
-            height: 18px;
-            background: #ef4444;
-            border-radius: 50%;
-            box-shadow: 0 0 12px #ef4444;
-            animation: pulse 1.5s infinite;
+            animation: pulse-live 1.8s infinite ease-in-out;
         }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.5; }
-            100% { transform: scale(1.3); opacity: 1; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.3);
+            border-radius: 4px;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4">
 
-    <div class="scaler-wrapper" id="scalerWrapper">
-        <!-- Canvas Matrix -->
-        <canvas id="matrixCanvas"></canvas>
+    <!-- Matrix Code Background -->
+    <canvas id="matrix-canvas"></canvas>
 
-        <!-- Fondo de Textos Flotantes -->
-        <div id="floatingContainer"></div>
+    <!-- App Main Container strictly formatted for 9:16 Mobile View (max-width 440px) -->
+    <div class="relative z-10 w-full max-w-[430px] h-[93vh] max-h-[880px] glass-panel rounded-3xl flex flex-col justify-between p-4 sm:p-5 shadow-2xl overflow-hidden">
 
-        <!-- Reproductor de Audio -->
-        <audio id="bgMusic" loop></audio>
-
-        <div class="app-container">
-            <!-- Columna Izquierda: Cajas y Controles -->
-            <div class="left-column">
-                <!-- Panel de Control (Botones Superiores) -->
-                <div class="control-panel">
-                    <button class="btn-ctrl" onclick="toggleMatrix()">🟢 Matrix</button>
-                    <button class="btn-ctrl" onclick="toggleFloatingWords()">✨ Flotantes</button>
-                    <button class="btn-ctrl" onclick="toggleMusic()">🎵 Música On/Off</button>
-                    <button class="btn-ctrl" onclick="nextSong()">⏭️ Sig. Música</button>
-                    <button class="btn-ctrl" onclick="loadRandomFacts()">🔄 Cambiar Cajas</button>
+        <!-- HEADER SECTION -->
+        <header class="flex flex-col gap-1.5 border-b border-cyan-500/20 pb-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-neonGreen live-dot inline-block shadow-[0_0_10px_#00ff66]"></span>
+                    <span class="text-xs font-code font-bold tracking-widest text-neonCyan uppercase">LIVE SYSTEM ACTIVE</span>
                 </div>
+                <span class="text-[10px] font-code bg-cyberDark/80 px-2 py-0.5 rounded text-gray-400 border border-white/10">v2.4.0</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                SISTEMA <span class="text-neonCyan">&</span> MENTE
+            </h1>
+            <p class="text-[11px] sm:text-xs text-gray-400 font-code">Translating human life into code & architecture.</p>
+        </header>
 
-                <!-- Encabezado -->
-                <div class="header">
-                    <h1>SISTEMA & MENTE</h1>
-                    <p>👇 Pide una caja en el chat para revelar el facto</p>
+        <!-- MUSIC PLAYER WIDGET -->
+        <div class="glass-card rounded-2xl p-3 flex items-center justify-between gap-3 my-2 shadow-lg">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-10 h-10 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-neonCyan">
+                    <i class="fa-solid fa-music text-sm animate-pulse"></i>
                 </div>
-
-                <!-- Cajas Interactivas -->
-                <div class="grid-boxes" id="boxesGrid">
-                    <!-- Se generan dinámicamente -->
-                </div>
-
-                <!-- Footer / Estado -->
-                <div class="footer-live">
-                    <div class="live-badge">
-                        <div class="live-dot"></div> TIKTOK LIVE
-                    </div>
-                    <div style="font-size: 20px; font-weight: 800;" id="trackTitle">Música: Pausada</div>
+                <div class="overflow-hidden">
+                    <p class="text-[10px] text-gray-400 font-code uppercase tracking-wider">Audio Stream</p>
+                    <p id="current-song-title" class="text-xs font-bold text-white truncate w-36 sm:w-44">Cargando pistas...</p>
                 </div>
             </div>
-
-            <!-- Columna Derecha: Espacio para el Chat de TikTok -->
-            <div class="right-column">
-                <p>💬 CHAT DE TIKTOK</p>
-                <span style="font-size: 16px; color: #94a3b8; margin-top: 15px;"></span>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button id="play-btn" onclick="togglePlay()" class="w-9 h-9 rounded-xl bg-neonCyan text-cyberDark font-bold flex items-center justify-center hover:bg-cyan-300 transition shadow-[0_0_12px_rgba(0,243,255,0.4)]">
+                    <i class="fa-solid fa-play text-xs" id="play-icon"></i>
+                </button>
+                <button onclick="nextSong()" class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition border border-white/10">
+                    <i class="fa-solid fa-forward-step text-xs"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Ventana Flotante Mágica (Modal) -->
-        <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
-            <div class="modal-card" onclick="event.stopPropagation()">
-                <div class="category-badge" id="modalBadge">CATEGORÍA</div>
-                <h2 id="modalTitle">Título del Facto</h2>
-                <p id="modalText">Texto del facto...</p>
-                <button class="btn-close" onclick="closeModal()">CERRAR / SIGUIENTE</button>
+        <!-- HIDDEN AUDIO ELEMENT -->
+        <audio id="audio-player" preload="auto"></audio>
+
+        <!-- INTERACTIVE CARDS GRID (FACTS 9:16 ADAPTIVE) -->
+        <main class="flex-1 overflow-y-auto flex flex-col gap-2.5 py-1 pr-0.5">
+            <p class="text-[11px] text-center text-cyan-300/80 font-code tracking-wide uppercase my-0.5">
+                👇 Elige una caja en el chat
+            </p>
+
+            <!-- Card 1 -->
+            <div onclick="openFact(1)" class="glass-card p-3.5 rounded-2xl cursor-pointer hover:border-cyan-400/50 group flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-neonCyan font-code font-bold text-xs group-hover:scale-110 transition">
+                        01
+                    </div>
+                    <div>
+                        <h2 class="text-xs sm:text-sm font-bold text-white group-hover:text-neonCyan transition">El Algoritmo del Dolor</h2>
+                        <p class="text-[11px] text-gray-400">Por qué repetimos patrones tóxicos...</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-500 group-hover:text-neonCyan transition transform group-hover:translate-x-1"></i>
             </div>
+
+            <!-- Card 2 -->
+            <div onclick="openFact(2)" class="glass-card p-3.5 rounded-2xl cursor-pointer hover:border-pink-500/50 group flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-neonPink font-code font-bold text-xs group-hover:scale-110 transition">
+                        02
+                    </div>
+                    <div>
+                        <h2 class="text-xs sm:text-sm font-bold text-white group-hover:text-neonPink transition">Memoria RAM Emocional</h2>
+                        <p class="text-[11px] text-gray-400">Saturación por exceso de pasado...</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-500 group-hover:text-pink-500 transition transform group-hover:translate-x-1"></i>
+            </div>
+
+            <!-- Card 3 -->
+            <div onclick="openFact(3)" class="glass-card p-3.5 rounded-2xl cursor-pointer hover:border-cyan-400/50 group flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-neonCyan font-code font-bold text-xs group-hover:scale-110 transition">
+                        03
+                    </div>
+                    <div>
+                        <h2 class="text-xs sm:text-sm font-bold text-white group-hover:text-neonCyan transition">Cuello de Botella Mental</h2>
+                        <p class="text-[11px] text-gray-400">El precio cognitivo de la multitarea...</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-500 group-hover:text-neonCyan transition transform group-hover:translate-x-1"></i>
+            </div>
+
+            <!-- Card 4 -->
+            <div onclick="openFact(4)" class="glass-card p-3.5 rounded-2xl cursor-pointer hover:border-green-400/50 group flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center text-neonGreen font-code font-bold text-xs group-hover:scale-110 transition">
+                        04
+                    </div>
+                    <div>
+                        <h2 class="text-xs sm:text-sm font-bold text-white group-hover:text-neonGreen transition">Hard Reset Humano</h2>
+                        <p class="text-[11px] text-gray-400">Cómo reiniciar tu sistema sin colapsar...</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-500 group-hover:text-neonGreen transition transform group-hover:translate-x-1"></i>
+            </div>
+        </main>
+
+        <!-- FOOTER / CHAT INSTRUCTION -->
+        <footer class="mt-2 pt-3 border-t border-white/10 text-center">
+            <div class="glass-card rounded-xl p-2.5 flex items-center justify-center gap-2 border-cyan-500/30">
+                <i class="fa-regular fa-comment-dots text-neonCyan text-sm animate-bounce"></i>
+                <span class="text-[11px] sm:text-xs font-semibold text-gray-200">Escribe <strong class="text-neonCyan font-code">Caja 1, 2, 3 o 4</strong> en el chat</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL POPUP FOR FACTS -->
+    <div id="fact-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="modal-content-box" class="w-full max-w-[390px] glass-panel rounded-3xl p-5 border border-cyan-500/40 shadow-[0_0_30px_rgba(0,243,255,0.2)] transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <span id="modal-badge" class="px-2 py-0.5 rounded text-[10px] font-code font-bold bg-cyan-500/20 text-neonCyan border border-cyan-500/30">CAJA 01</span>
+                    <span class="text-[10px] text-gray-400 font-code">STATUS: DECODED</span>
+                </div>
+                <button onclick="closeFact()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            
+            <h3 id="modal-title" class="text-base sm:text-lg font-bold text-white mb-2 leading-snug">Título del Facto</h3>
+            
+            <div class="bg-cyberDark/60 rounded-2xl p-3.5 border border-white/5 mb-4 max-h-[45vh] overflow-y-auto">
+                <p id="modal-text" class="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans">
+                    Contenido explicativo del facto...
+                </p>
+            </div>
+
+            <button onclick="closeFact()" class="w-full py-2.5 rounded-xl bg-neonCyan text-cyberDark font-bold text-xs tracking-wider uppercase hover:bg-cyan-300 transition shadow-[0_0_15px_rgba(0,243,255,0.4)]">
+                Cerrar Protocolo
+            </button>
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Auto-escala perfecta para cualquier pantalla
-        function autoResizeApp() {
-            const wrapper = document.getElementById('scalerWrapper');
-            const scaleX = window.innerWidth / 1080;
-            const scaleY = window.innerHeight / 1920;
-            const scale = Math.min(scaleX, scaleY);
-            wrapper.style.transform = `scale(${scale})`;
+        // --- MATRIX BACKGROUND ANIMATION ---
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-        window.addEventListener('resize', autoResizeApp);
-        window.onload = function() {
-            autoResizeApp();
-            loadRandomFacts();
-            initMatrix();
-            initFloatingWords();
-        };
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        const dbFactos = [
-            { id: 1, categoria: "HARDWARE & MENTE", titulo: "Cuello de Botella", facto: "En una PC, un procesador potente no sirve de nada si la RAM es lenta y causa un 'cuello de botella'. En la vida pasa igual: puedes tener muchas ganas, pero si te rodeas de personas que frenan tu ritmo, tu potencial se queda atrapado." },
-            { id: 2, categoria: "SISTEMA & EMOCIÓN", titulo: "Memoria Caché", facto: "Cuando tu navegador se llena de archivos de caché viejos, se vuelve lento y falla. Tu mente funciona igual: cuando la llenas de rencores y pensamientos del pasado que no has borrado, colapsas antes de empezar el día." },
-            { id: 3, categoria: "HARDWARE & MENTE", titulo: "Pasta Térmica", facto: "Un procesador se sobrecalienta y se apaga cuando la pasta térmica se seca. Las personas colapsamos igual: si no expresas lo que sientes y te guardas el estrés, tu sistema se 'apaga' emocionalmente para evitar un daño peor." },
-            { id: 4, categoria: "CÓDIGO & VIDA", titulo: "Bucle Infinito", facto: "Un bucle infinito en código ocurre cuando una condición nunca se cumple y el programa se congela. Sobrepensar a las 2:00 AM es exactamente eso: tu cerebro ejecutando la misma duda una y otra vez sin llegar a una solución." },
-            { id: 5, categoria: "SISTEMA & EMOCIÓN", titulo: "Hard Reset", facto: "A veces, la única forma de corregir un fallo grave en un sistema es un reinicio forzado. Cortar contacto, cambiar de entorno y empezar de cero no es fracasar, es el 'Hard Reset' que tu vida necesitaba para volver a funcionar bien." },
-            { id: 6, categoria: "CÓDIGO & VIDA", titulo: "Error de Lógica", facto: "En código, un error de sintaxis detiene el programa de inmediato, pero un error de lógica lo deja correr haciendo las cosas mal sin darte cuenta. En las relaciones es igual: el problema a veces no es lo que dices, sino asumir intenciones que nunca existieron." },
-            { id: 7, categoria: "REFLEXIÓN", titulo: "El Verdadero Soltar", facto: "Aceptar que alguien ya no te quiere en su vida también es una forma de quererte a ti mismo." },
-            { id: 8, categoria: "REFLEXIÓN", titulo: "Expectativa vs Realidad", facto: "El problema no es que extrañes a esa persona, extrañas la versión de ella que tú mismo creaste en tu mente." },
-            { id: 9, categoria: "HARDWARE & MENTE", titulo: "Mito de la RAM", facto: "Tener más Memoria RAM no hace tu computadora más rápida, solo te permite abrir más programas a la vez. En la mente es igual: acumular muchas metas al mismo tiempo no te hace avanzar más rápido, solo te distrae." },
-            { id: 10, categoria: "REFLEXIÓN", titulo: "Silencios que Hablan", facto: "Hay conversaciones que nunca vas a tener con la persona que te dolía, y está bien: la paz se encuentra en no necesitar su explicación." }
-        ];
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const alphabet = katakana + latin;
 
+        const fontSize = 14;
+        let columns = canvas.width / fontSize;
+        const rainDrops = [];
+
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(9, 10, 15, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00f3ff';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 30);
+
+
+        // --- AUDIO PLAYER & PLAYLIST LOGIC ---
         const playlist = [
-            { nombre: "Pista Lofi 01", url: "musica1.mp3" },
-            { nombre: "Pista Lofi 02", url: "musica2.mp3" },
-            { nombre: "Pista Ambient 03", url: "musica3.mp3" },
-            { nombre: "Pista Ambient 03", url: "musica5.mp3" },
-              { nombre: "Pista Ambient 03", url: "musica75.mp3" },
-            { nombre: "Pista Ambient 03", url: "musica76.mp3" },
-            { nombre: "Pista Ambient 03", url: "musica77.mp3" },
-            { nombre: "Pista Ambient 03", url: "musica78.mp3" },
-         
-            
+            { nombre: "Cyber Lofi 01", url: "musica1.mp3" },
+            { nombre: "Ambient Chill 02", url: "musica2.mp3" },
+            { nombre: "Deep Focus 03", url: "musica3.mp3" },
+            { nombre: "System Pulse 04", url: "musica5.mp3" },
+            { nombre: "System Pulse 04", url: "musica75.mp3" },
+        { nombre: "System Pulse 04", url: "musica76.mp3" },
+        { nombre: "System Pulse 04", url: "musica77.mp3" },
+            { nombre: "System Pulse 04", url: "musica78.mp3" },
         ];
-        let currentTrack = 0;
-        let isPlaying = false;
 
-        // Generar 4 Cajas Aleatorias
-        function loadRandomFacts() {
-            const shuffled = [...dbFactos].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 4);
-            const grid = document.getElementById('boxesGrid');
-            grid.innerHTML = '';
+        let currentTrackIndex = 0;
+        const audioPlayer = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const songTitleEl = document.getElementById('current-song-title');
 
-            const boxStyles = ['box-1', 'box-2', 'box-3', 'box-4'];
-
-            selected.forEach((item, index) => {
-                const box = document.createElement('div');
-                box.className = `fact-box ${boxStyles[index]}`;
-                box.innerHTML = `
-                    <div class="tag">[ ${item.categoria} ]</div>
-                    <h3>CAJA 0${index + 1}</h3>
-                    <span>${item.titulo}</span>
-                `;
-                box.onclick = () => openModal(item);
-                grid.appendChild(box);
-            });
+        function loadTrack(index) {
+            if (playlist.length === 0) return;
+            currentTrackIndex = index;
+            audioPlayer.src = playlist[currentTrackIndex].url;
+            songTitleEl.textContent = playlist[currentTrackIndex].nombre;
+            audioPlayer.load();
         }
 
-        // Ventana Modal
-        function openModal(item) {
-            document.getElementById('modalBadge').innerText = item.categoria;
-            document.getElementById('modalTitle').innerText = item.titulo;
-            document.getElementById('modalText').innerText = `"${item.facto}"`;
-            document.getElementById('modalOverlay').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-        }
-
-        // Controles de Música
-        function toggleMusic() {
-            const player = document.getElementById('bgMusic');
-            if (!isPlaying) {
-                player.src = playlist[currentTrack].url;
-                player.play().then(() => {
-                    isPlaying = true;
-                    document.getElementById('trackTitle').innerText = `Música: ${playlist[currentTrack].nombre}`;
-                }).catch(() => {
-                    alert("Coloca tus archivos MP3 (ej. musica1.mp3) en la misma carpeta de tu proyecto.");
+        function togglePlay() {
+            if (audioPlayer.paused) {
+                audioPlayer.play().then(() => {
+                    playIcon.className = "fa-solid fa-pause text-xs";
+                }).catch(err => {
+                    console.log("Audio play prevented or file not found:", err);
+                    songTitleEl.textContent = "Error: Sube tus .mp3";
                 });
             } else {
-                player.pause();
-                isPlaying = false;
-                document.getElementById('trackTitle').innerText = "Música: Pausada";
+                audioPlayer.pause();
+                playIcon.className = "fa-solid fa-play text-xs";
             }
         }
 
         function nextSong() {
-            currentTrack = (currentTrack + 1) % playlist.length;
-            const player = document.getElementById('bgMusic');
-            player.src = playlist[currentTrack].url;
-            if (isPlaying) {
-                player.play();
-                document.getElementById('trackTitle').innerText = `Música: ${playlist[currentTrack].nombre}`;
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            loadTrack(currentTrackIndex);
+            audioPlayer.play().then(() => {
+                playIcon.className = "fa-solid fa-pause text-xs";
+            }).catch(e => console.log(e));
+        }
+
+        audioPlayer.addEventListener('ended', nextSong);
+
+        // Initialize first track
+        loadTrack(0);
+
+
+        // --- FACTS DATA & MODAL SYSTEM ---
+        const factsData = {
+            1: {
+                badge: "CAJA 01",
+                title: "El Algoritmo del Dolor",
+                text: "El cerebro humano prioriza las experiencias negativas sobre las positivas como mecanismo de supervivencia ancestral (sesgo de negatividad). Repetir relaciones o hábitos destructivos es simplemente un bucle de código mal cerrado que busca desesperadamente un parche que nunca llega. Para salir de ahí, se requiere un refactorización consciente de tus prioridades mentales."
+            },
+            2: {
+                badge: "CAJA 02",
+                title: "Memoria RAM Emocional",
+                text: "Cargamos en nuestra memoria de corto plazo conversaciones de hace tres años, reproches y ofensas que ya no sirven en el presente. Esto genera una saturación del sistema operativo mental, provocando lentitud en la toma de decisiones diarias y agotamiento crónico sin causa física aparente. Liberar memoria RAM emocional requiere aceptar lo que ya no se puede compilar."
+            },
+            3: {
+                badge: "CAJA 03",
+                title: "Cuello de Botella Mental",
+                text: "Creer que eres multitarea (multitasking) es el mayor error de arquitectura del ser humano moderno. El procesador central (tu atención) no hace varias cosas a la vez; hace un cambio rápido de contexto (context switching) que drena tu energía un 40% más rápido. El secreto del alto rendimiento es la concentración monohilo en una sola tarea."
+            },
+            4: {
+                badge: "CAJA 04",
+                title: "Hard Reset Humano",
+                text: "Cuando el sistema colapsa por ansiedad o estrés extremo, ningún parche superficial funciona. Se requiere un Hard Reset absoluto: desconexión digital total, respiración diafragmática profunda para reiniciar el sistema nervioso autónomo, y aceptación radical de que el descanso no es un lujo, sino un mantenimiento obligatorio del hardware biológico."
             }
+        };
+
+        const modal = document.getElementById('fact-modal');
+        const modalContentBox = document.getElementById('modal-content-box');
+        const modalBadge = document.getElementById('modal-badge');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+
+        function openFact(id) {
+            const data = factsData[id];
+            if (!data) return;
+
+            modalBadge.textContent = data.badge;
+            modalTitle.textContent = data.title;
+            modalText.textContent = data.text;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContentBox.classList.remove('scale-95');
+            modalContentBox.classList.add('scale-100');
         }
 
-        // Efecto Matrix
-        let matrixActive = false;
-        function initMatrix() {
-            const canvas = document.getElementById('matrixCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 1080;
-            canvas.height = 1920;
+        function closeFact() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContentBox.classList.remove('scale-100');
+            modalContentBox.classList.add('scale-95');
+        }
 
-            const letters = "01SYSTEM_MENTE_HARDWARE";
-            const fontSize = 16;
-            const columns = canvas.width / fontSize;
-            const drops = Array(Math.floor(columns)).fill(1);
-
-            function draw() {
-                ctx.fillStyle = 'rgba(7, 10, 19, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#38bdf8';
-                ctx.font = fontSize + 'px "Share Tech Mono", monospace';
-
-                for (let i = 0; i < drops.length; i++) {
-                    const text = letters.charAt(Math.floor(Math.random() * letters.length));
-                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                        drops[i] = 0;
-                    }
-                    drops[i]++;
-                }
+        // Close modal clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeFact();
             }
-            window.matrixLoop = draw;
-        }
-
-        function toggleMatrix() {
-            matrixActive = !matrixActive;
-            const canvas = document.getElementById('matrixCanvas');
-            if (matrixActive) {
-                canvas.style.display = 'block';
-                window.matrixTimer = setInterval(window.matrixLoop, 35);
-            } else {
-                canvas.style.display = 'none';
-                clearInterval(window.matrixTimer);
-            }
-        }
-
-        // Textos Flotantes
-        let floatingActive = false;
-        function initFloatingWords() {
-            const container = document.getElementById('floatingContainer');
-            const words = ["Hardware", "RAM", "CPU", "Bucle", "HardReset", "Sistema", "Mente"];
-            
-            for (let i = 0; i < 15; i++) {
-                const div = document.createElement('div');
-                div.className = 'floating-word';
-                div.innerText = words[Math.floor(Math.random() * words.length)];
-                div.style.left = Math.random() * 100 + '%';
-                div.style.animationDuration = (8 + Math.random() * 8) + 's';
-                div.style.animationDelay = (Math.random() * 5) + 's';
-                container.appendChild(div);
-            }
-        }
-
-        function toggleFloatingWords() {
-            floatingActive = !floatingActive;
-            const container = document.getElementById('floatingContainer');
-            container.style.display = floatingActive ? 'block' : 'none';
-        }
+        });
     </script>
 </body>
 </html>
